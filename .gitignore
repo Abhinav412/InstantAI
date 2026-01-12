@@ -4,6 +4,7 @@ frontend/node_modules/
 .next/
 out/
 dist/
+data/
 
 # Env files
 .env
