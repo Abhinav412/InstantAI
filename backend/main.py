@@ -10,7 +10,7 @@ app.add_middleware(
     allow_origins=["*"],  # allow all for dev
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"],s
 )
 
 app.include_router(chat_router)
