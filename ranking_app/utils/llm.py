@@ -1,22 +1,30 @@
-import os, json, re
+import os, json, time
 from groq import Groq, APIConnectionError
-import time
+from dotenv import load_dotenv
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+# ✅ Load .env file
+load_dotenv()
+
+API_KEY = os.getenv("GROQ_API_KEY")
+if not API_KEY:
+    raise RuntimeError("GROQ_API_KEY not found in environment")
+
+client = Groq(api_key=API_KEY)
 
 MODEL = "llama-3.1-8b-instant"
+
 
 def extract_json(text: str):
     if not text:
         raise ValueError("Empty LLM response")
 
-    # Fast path: exact JSON
+    # Fast path
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
 
-    # Robust path: find first valid JSON object
+    # Robust extraction
     stack = []
     start = None
 
@@ -37,13 +45,14 @@ def extract_json(text: str):
 
     raise ValueError(f"Invalid JSON from LLM:\n{text}")
 
+
 def call_llm(system, user, retries=3, temperature=0.1):
     last_error = None
 
     for attempt in range(retries):
         try:
             response = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model=MODEL,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": user}
@@ -56,8 +65,7 @@ def call_llm(system, user, retries=3, temperature=0.1):
 
         except APIConnectionError as e:
             last_error = e
-            print(f"⚠️ Groq connection failed (attempt {attempt+1}/{retries})")
+            print(f"⚠️ Groq connection failed ({attempt+1}/{retries})")
             time.sleep(1.5)
 
     raise RuntimeError("Groq API failed after retries") from last_error
-

@@ -20,7 +20,18 @@ if st.button("Run Ranking"):
     else:
         with st.spinner("Running agent pipeline..."):
             response = requests.post(API_URL, json={"query": query})
-            result = response.json()
+            try:
+                result = response.json()
+            except Exception:
+                st.error("Backend did not return valid JSON")
+                st.text("Status code: " + str(response.status_code))
+                st.code(response.text)
+                st.stop()
+            
+            if not result.get("success", False):
+                st.error("Ranking failed")
+                st.text(result.get("error", "Unknown error"))
+                st.stop()
 
         rankings = result["rankings"]
         explanation = result["explanation"]
@@ -31,8 +42,9 @@ if st.button("Run Ranking"):
             st.success("Ranking completed")
 
             df = pd.DataFrame(rankings)
+            df.insert(0, "rank", range(1, len(df) + 1))
             st.subheader("📊 Ranked Results")
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, use_container_width=True,hide_index=True)
 
             st.subheader("🧠 Explanation")
             st.markdown(f"**Summary:** {explanation['summary']}")

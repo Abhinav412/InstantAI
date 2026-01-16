@@ -9,3 +9,5 @@ fastapi
 uvicorn
 bs4
 groq
+ddgs
+python-dotenv

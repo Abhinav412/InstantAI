@@ -33,6 +33,13 @@ def run_pipeline(query, data=None):
 
     raw_rankings = score_entities(entities, metrics)
     rankings = deduplicate_rankings(raw_rankings, strategy="max")
+    
+    try:
+        top_k = int(intent.top_k)
+    except (TypeError, ValueError):
+        top_k = 10  # sensible default
+    
+    rankings = rankings[:top_k]
 
     try:
         explanation = explain(rankings, metrics)

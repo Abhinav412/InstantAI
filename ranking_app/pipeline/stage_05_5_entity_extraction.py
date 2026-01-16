@@ -2,8 +2,15 @@ from utils.llm import call_llm
 
 def extract_entities(documents, entity_type):
     system = """
-    You extract real-world entities from text.
-    Return ONLY valid JSON.
+    You are an entity extraction agent.
+
+    STRICT RULES:
+    - Return ONLY a JSON array (list)
+    - Do NOT include explanations
+    - Do NOT include markdown
+    - Do NOT include comments
+    - Each item must have: name, url, evidence
+    - Return [] if no entities are found
     """
 
     user = f"""
@@ -12,7 +19,8 @@ def extract_entities(documents, entity_type):
     Documents:
     {documents}
 
-    Return JSON array of objects:
+    Return EXACTLY this structure:
+
     [
       {{
         "name": string,
@@ -24,7 +32,21 @@ def extract_entities(documents, entity_type):
 
     response = call_llm(system, user)
 
-    if not isinstance(response, list):
-        raise TypeError("Entity extraction must return a list")
+    # -------- SAFE NORMALIZATION (CRITICAL) --------
 
-    return response
+    # Case 1: Perfect
+    if isinstance(response, list):
+        return response
+
+    # Case 2: Wrapped list
+    if isinstance(response, dict) and "entities" in response:
+        if isinstance(response["entities"], list):
+            return response["entities"]
+
+    # Case 3: Single entity object
+    if isinstance(response, dict) and {"name", "url", "evidence"} <= response.keys():
+        return [response]
+
+    # Case 4: Anything else → recover safely
+    print("⚠️ Entity extraction malformed response:", response)
+    return []
