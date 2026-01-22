@@ -1,0 +1,8 @@
+from enum import Enum
+
+
+class ChatbotMode(str, Enum):
+    FULL_ANSWER = "FULL_ANSWER"
+    CLARIFICATION_ONLY = "CLARIFICATION_ONLY"
+    DISCLOSURE_ONLY = "DISCLOSURE_ONLY"
+    REFUSE = "REFUSE"
