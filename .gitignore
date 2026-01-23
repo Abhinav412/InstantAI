@@ -28,3 +28,15 @@ Thumbs.db
 __pycache__/
 *.pyc
 venv/
+
+# Datasets & archives
+*.csv
+*.zip
+
+# Local data / queries
+query/
+dataset_ranking_app/
+
+# Root-level Node files (only keep frontend ones)
+package.json
+package-lock.json
