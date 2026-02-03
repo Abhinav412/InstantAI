@@ -1,8 +1,12 @@
 import requests
 from typing import List
+import os
+from dotenv import load_dotenv
 
-GOOGLE_API_KEY = "AIzaSyDD0FJiU5s41SdG-oP7HKFQLBzW9KZkjYM"
-GOOGLE_CX = "e6db2632698fb4225"
+load_dotenv()
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_CX = os.getenv("GOOGLE_API_KEY")
 
 
 def search_urls(query: str, num: int = 5) -> List[str]:
