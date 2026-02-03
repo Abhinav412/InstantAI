@@ -3,7 +3,7 @@ import pandas as pd
 
 from backend.storage.dataset_store import get_dataset
 from pipeline.dataset_pipeline import process_user_dataset
-from agents.chat_runtime import run_dataset_chatbot
+from agents.chat_runtime import run_chat_runtime
 
 router = APIRouter()
 
@@ -25,7 +25,7 @@ def chat_with_dataset(
 
     dataset_preview = df.head(5).to_dict(orient="records")
 
-    return run_dataset_chatbot(
+    return run_chat_runtime(
         user_query=user_query,
         knowledge_index=system_state["knowledge_index"],
         allowed_metrics=system_state["allowed_metrics"],

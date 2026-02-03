@@ -1,17 +1,42 @@
+import os
+import requests
 from models.schema import ExternalData
-from ddgs import DDGS
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
+
+GOOGLE_SEARCH_URL = "https://www.googleapis.com/customsearch/v1"
+
 
 def run_web_intelligence(queries):
     docs = []
+
+    if not GOOGLE_API_KEY or not GOOGLE_CSE_ID:
+        print("⚠️ Google Search API credentials mNissing")
+        return docs
+
     try:
-        with DDGS() as ddgs:
-            for q in queries:
-                for r in ddgs.text(q, max_results=5):
-                    docs.append({
-                        "query": q,
-                        "url": r.get("href"),
-                        "content": r.get("body", "")
-                    })
+        for q in queries:
+            params = {
+                "key": GOOGLE_API_KEY,
+                "cx": GOOGLE_CSE_ID,
+                "q": q,
+                "num": 5
+            }
+
+            response = requests.get(GOOGLE_SEARCH_URL, params=params, timeout=10)
+            response.raise_for_status()
+
+            data = response.json()
+            items = data.get("items", [])
+
+            for item in items:
+                docs.append({
+                    "query": q,
+                    "url": item.get("link"),
+                    "content": item.get("snippet", "")
+                })
+
     except Exception as e:
         print("⚠️ Web search failed:", e)
 
