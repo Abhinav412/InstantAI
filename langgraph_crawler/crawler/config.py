@@ -1,0 +1,69 @@
+"""Configurable parameters for the crawler pipeline."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field, fields
+from typing import Optional
+
+from langchain_core.runnables import RunnableConfig, ensure_config
+
+
+@dataclass(kw_only=True)
+class Configuration:
+    """Runtime configuration — values can be overridden via RunnableConfig."""
+
+    model: str = field(
+        default="meta/meta-llama-3-8b-instruct",
+        metadata={
+            "description": (
+                "Replicate model identifier used for intent parsing, "
+                "source verification, and summarisation."
+            )
+        },
+    )
+
+    max_search_results: int = field(
+        default=10,
+        metadata={"description": "Max results per Tavily search query."},
+    )
+
+    min_word_count: int = field(
+        default=200,
+        metadata={
+            "description": "Minimum word count to pass the crawler quality gate."
+        },
+    )
+
+    min_credibility: float = field(
+        default=0.6,
+        metadata={"description": "Minimum credibility score (0-1) to keep a source."},
+    )
+
+    max_retries: int = field(
+        default=2,
+        metadata={
+            "description": "How many times the pipeline may loop back to Intent Parser."
+        },
+    )
+
+    mongo_db_name: str = field(
+        default="langgraph_crawler",
+        metadata={"description": "MongoDB database name."},
+    )
+
+    min_processed_docs: int = field(
+        default=3,
+        metadata={
+            "description": "Minimum processed docs before the pipeline is satisfied."
+        },
+    )
+
+    @classmethod
+    def from_runnable_config(
+        cls, config: Optional[RunnableConfig] = None
+    ) -> Configuration:
+        """Instantiate from a LangGraph RunnableConfig, using defaults for missing keys."""
+        config = ensure_config(config)
+        configurable = config.get("configurable") or {}
+        _fields = {f.name for f in fields(cls) if f.init}
+        return cls(**{k: v for k, v in configurable.items() if k in _fields})
